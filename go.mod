@@ -2,4 +2,8 @@ module golang.org/x/example
 
 go 1.15
 
-require golang.org/x/tools v0.0.0-20210112183307-1e6ecd4bf1b0
+require (
+	github.com/aws/aws-sdk-go-v2 v1.16.1
+	github.com/satori/go.uuid v1.1.0
+	golang.org/x/tools v0.7.0
+)
