@@ -4,7 +4,8 @@
   "packageRules": [
     {
       "groupName": "All non-major go dependencies",
-      "matchUpdateTypes": ["minor", "patch"]
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": ">=1.0.0"
     }
   ]
 }
