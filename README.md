@@ -1,75 +1,52 @@
-# Go example projects
+# Current behaviour
 
-[![Go Reference](https://pkg.go.dev/badge/golang.org/x/example.svg)](https://pkg.go.dev/golang.org/x/example)
+I recently came across an issue where I configured Renovate to make all PR with all "minor" and "patch" updates.
 
-This repository contains a collection of Go programs and libraries that
-demonstrate the language, standard libraries, and tools.
+This worked as expected, however I also then wanted to filter the PR to only packages which have a major version >1.0.0 so that they were lower risk package updates.
 
-## Clone the project
+This works as expected for new PR but I don't believe it's working work existing PRs event though the PR summary states it's filtered out the non major version >1.0.0 version.
 
+I first configured renovate to merge all minor and patch packages like so:
+
+``` json
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabled": true,
+  "packageRules": [
+    {
+      "groupName": "All non-major go dependencies",
+      "matchUpdateTypes": ["minor", "patch"],
+    }
+  ]
+}
 ```
-$ git clone https://go.googlesource.com/example
-$ cd example
+
+Which raised the correct PR updating the packages like so:
+
+github.com/aws/aws-sdk-go-v2 v1.16.1 -> github.com/aws/aws-sdk-go-v2 v1.18.0
+github.com/satori/go.uuid v1.1.0 -> github.com/satori/go.uuid v1.2.0
+golang.org/x/tools v0.7.0 -> golang.org/x/tools v0.8.0
+
+However after updating the renovate.json to exclude the package with an unstable API:
+
+``` json 
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabled": true,
+  "packageRules": [
+    {
+      "groupName": "All non-major go dependencies",
+      "matchUpdateTypes": ["minor", "patch"],
+      "matchCurrentVersion": ">=1.0.0"
+    }
+  ]
+}
 ```
-https://go.googlesource.com/example is the canonical Git repository.
-It is mirrored at https://github.com/golang/example.
-## [hello](hello/) and [stringutil](stringutil/)
 
-```
-$ cd hello
-$ go build
-```
-A trivial "Hello, world" program that uses a stringutil package.
+the PR claims that it's no-longer updating the golang.org/x/tools package
 
-Command [hello](hello/) covers:
+Yet it's still include in the PR here
 
-* The basic form of an executable command
-* Importing packages (from the standard library and the local repository)
-* Printing strings ([fmt](//golang.org/pkg/fmt/))
+## Expected Behaviour
 
-Library [stringutil](stringutil/) covers:
-
-* The basic form of a library
-* Conversion between string and []rune
-* Table-driven unit tests ([testing](//golang.org/pkg/testing/))
-
-## [outyet](outyet/)
-
-```
-$ cd outyet
-$ go build
-```
-A web server that answers the question: "Is Go 1.x out yet?"
-
-Topics covered:
-
-* Command-line flags ([flag](//golang.org/pkg/flag/))
-* Web servers ([net/http](//golang.org/pkg/net/http/))
-* HTML Templates ([html/template](//golang.org/pkg/html/template/))
-* Logging ([log](//golang.org/pkg/log/))
-* Long-running background processes
-* Synchronizing data access between goroutines ([sync](//golang.org/pkg/sync/))
-* Exporting server state for monitoring ([expvar](//golang.org/pkg/expvar/))
-* Unit and integration tests ([testing](//golang.org/pkg/testing/))
-* Dependency injection
-* Time ([time](//golang.org/pkg/time/))
-
-## [appengine-hello](appengine-hello/)
-
-A trivial "Hello, world" App Engine application intended to be used as the
-starting point for your own code. Please see
-[Google App Engine SDK for Go](https://cloud.google.com/appengine/downloads#Google_App_Engine_SDK_for_Go)
-and [Quickstart for Go in the App Engine Standard Environment](https://cloud.google.com/appengine/docs/standard/go/quickstart).
-
-## [gotypes](gotypes/)
-
-The `go/types` package is a type-checker for Go programs. It is one of the most
-complex packages in Go's standard library, so we have provided this tutorial to
-help you find your bearings. It comes with several example programs that you
-can obtain using `go get` and play with as you learn to build tools that analyze
-or manipulate Go programs.
-
-## [template](template/)
-
-A trivial web server that demonstrates the use of the
-[`template` package](https://golang.org/pkg/text/template/)'s `block` feature.
+After updating the renovate configuration it would update the PR to exclude the packages updates which should be filtered out based on the new packageRules.
